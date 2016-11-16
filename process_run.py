@@ -16,9 +16,15 @@ class TestEntry:
         self.entry3 = entry3
         self.array1 = array1
         self.array2 = array2
+        print self.entry1.ENERGY_LVL
         self.starts_hist_entry = numpy.array([entry2.starts_00, entry2.starts_01, entry2.starts_02, entry2.starts_03, entry2.starts_04, entry2.starts_05, entry2.starts_06, entry2.starts_07, entry2.starts_08, entry2.starts_09, entry2.starts_10, entry2.starts_11, entry2.starts_12, entry2.starts_13, entry2.starts_14, entry2.starts_15])
 class TestRun:
     EntryList = []
+    energy_elevation_start1 = [][]
+    energy_elevation_start2 = [][]
+    energy_elevation_stop1 = [][]
+    energy_elevation_stop2 = [][]
+
     stable_count = 0
     starts_hist = numpy.zeros(16)
     def __init__(self, dir_name):
@@ -62,5 +68,5 @@ class TestRun:
             print self.starts_hist
             del entry
 if __name__ == "__main__":
-    run = TestRun("/home/sslocum/python_dev/hpca_data_proc/data/")
+    run = TestRun("./data/")
     run.ProcessEntry()
