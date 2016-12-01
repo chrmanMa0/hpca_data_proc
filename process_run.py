@@ -16,14 +16,14 @@ class TestEntry:
         self.entry3 = entry3
         self.array1 = array1
         self.array2 = array2
-        print self.entry1.ENERGY_LVL
+        #print self.entry1.ENERGY_LVL
         self.starts_hist_entry = numpy.array([entry2.starts_00, entry2.starts_01, entry2.starts_02, entry2.starts_03, entry2.starts_04, entry2.starts_05, entry2.starts_06, entry2.starts_07, entry2.starts_08, entry2.starts_09, entry2.starts_10, entry2.starts_11, entry2.starts_12, entry2.starts_13, entry2.starts_14, entry2.starts_15])
 class TestRun:
     EntryList = []
-    energy_elevation_start1 = [][]
-    energy_elevation_start2 = [][]
-    energy_elevation_stop1 = [][]
-    energy_elevation_stop2 = [][]
+    energy_elevation_start1 = [[[] for i in range(360)] for i in range(64)]
+    energy_elevation_start2 = [[[] for i in range(360)] for i in range(64)]
+    energy_elevation_stop1 = [[[] for i in range(360)] for i in range(64)]
+    energy_elevation_stop2 = [[[] for i in range(360)] for i in range(64)]
 
     stable_count = 0
     starts_hist = numpy.zeros(16)
@@ -59,13 +59,51 @@ class TestRun:
                 second_array = [array2.unpack_from(b, 16746)]
                 entry3 = third_entry._make(s3.unpack_from(b, 20842))
                 entry = TestEntry(entry1, entry2, entry3, first_array, second_array)
-                self.EntryList.append(entry)
+                #self.EntryList.append(entry)
                 if entry.entry1.acr13_moving == 0:
-                    self.starts_hist += entry.starts_hist_entry
+                    #print entry.entry1.acr13_bmon
+                    #print int(entry.entry1.acr13_bprog) + 180
+                    #print entry.entry1.acr13_bprog
+                    self.energy_elevation_start1[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog)+180].append(entry.entry2.starttof1)
+                    self.energy_elevation_start2[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog)+180].append(entry.entry2.starttof2)
+                    self.energy_elevation_stop1[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog)+180].append(entry.entry2.stoptof1)
+                    self.energy_elevation_stop2[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog)+180].append(entry.entry2.stoptof2)
                     self.stable_count += 1
+            print "Collapsing to means"
+            #self.energy_elevation_start1[:][:] = numpy.mean(self.energy_elevation_start1, axis=2)
+            energy_index = 0
+            elevation_index = -180
+            for row in self.energy_elevation_start1:
+                for column in row:
+                    for entry in column:
+                        entry = numpy.mean(entry)
+
+            for row in self.energy_elevation_start2:
+                for column in row:
+                    for entry in column:
+                        entry = numpy.mean(entry)
+
+            for row in self.energy_elevation_start1:
+                for column in row:
+                    for entry in column:
+                        entry = numpy.mean(entry)
+
+            for row in self.energy_elevation_start1:
+                for column in row:
+                    for entry in column:
+                        entry = numpy.mean(entry)
+
+            for row in self.energy_elevation_start1:
+                for column in row:
+                    for entry in column:
+                        entry = numpy.mean(entry)
+
+
+
             print "Run length: " + str(len(self.EntryList))
             print "Stable count: " + str(self.stable_count)
             print self.starts_hist
+
             del entry
 if __name__ == "__main__":
     run = TestRun("./data/")
