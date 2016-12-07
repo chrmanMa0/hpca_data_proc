@@ -68,35 +68,34 @@ class TestRun:
             self.ProcessEntry(file, J)
             self.GeneratePlots()
     def GeneratePlots(self):
-        fig, ax = plt.subplots()
-        cax = ax.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
-        ax.set_title("Start1/J at Energy vs Elevation")
-        cbar = fig.colorbar(cax, ticks=[numpy.min(self.mean_energy_elevation_start1), numpy.max(self.mean_energy_elevation_start1)/2, numpy.max(self.mean_energy_elevation_start1)])
-        cbar.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_start1/2)), '>'+ str(numpy.max(self.mean_energy_elevation_start1))])  # vertically oriented colorbar
+        #fig, ax = plt.subplots()
+        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex='col', sharey='row')
+        cax1 = ax1.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
+        ax1.set_title("Start1/J at Energy vs Elevation")
+        cbar1 = fig.colorbar(cax1, ticks=[numpy.min(self.mean_energy_elevation_start1), numpy.max(self.mean_energy_elevation_start1)/2, numpy.max(self.mean_energy_elevation_start1)])
+        cbar1.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_start1/2)), '>'+ str(numpy.max(self.mean_energy_elevation_start1))])  # vertically oriented colorbar
 
-        fig, ax = plt.subplots()
-        cax = ax.imshow(self.mean_energy_elevation_start2, interpolation='nearest', cmap=cm.coolwarm)
-        ax.set_title("Start2/J at Energy vs Elevation")
-        cbar = fig.colorbar(cax, ticks=[numpy.min(self.mean_energy_elevation_start2), numpy.max(self.mean_energy_elevation_start2)/2, numpy.max(self.mean_energy_elevation_start2)])
-        cbar.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_start2/2)), '>'+ str(numpy.max(self.mean_energy_elevation_start2))])  # vertically oriented colorbar
+ #       fig = plt.figure()
+        cax2 = ax2.imshow(self.mean_energy_elevation_start2, interpolation='nearest', cmap=cm.coolwarm)
+        ax2.set_title("Start2/J at Energy vs Elevation")
+        cbar2 = fig.colorbar(cax2, ticks=[numpy.min(self.mean_energy_elevation_start2), numpy.max(self.mean_energy_elevation_start2)/2, numpy.max(self.mean_energy_elevation_start2)])
+        cbar2.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_start2/2)), '>'+ str(numpy.max(self.mean_energy_elevation_start2))])  # vertically oriented colorbar
 
-        fig, ax = plt.subplots()
-        cax = ax.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
-        ax.set_title("Stop1/J at Energy vs Elevation")
-        cbar = fig.colorbar(cax, ticks=[numpy.min(self.mean_energy_elevation_stop1), numpy.max(self.mean_energy_elevation_stop1)/2, numpy.max(self.mean_energy_elevation_stop1)])
-        cbar.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_stop1/2)), '>'+ str(numpy.max(self.mean_energy_elevation_stop1))])  # vertically oriented colorbar
+        cax3 = ax3.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
+        ax3.set_title("Stop1/J at Energy vs Elevation")
+        cbar3 = fig.colorbar(cax3, ticks=[numpy.min(self.mean_energy_elevation_stop1), numpy.max(self.mean_energy_elevation_stop1)/2, numpy.max(self.mean_energy_elevation_stop1)])
+        cbar3.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_stop1/2)), '>'+ str(numpy.max(self.mean_energy_elevation_stop1))])  # vertically oriented colorbar
 
-        fig, ax = plt.subplots()
-        cax = ax.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
-        ax.set_title("Stop2/J at Energy vs Elevation")
-        cbar = fig.colorbar(cax, ticks=[numpy.min(self.mean_energy_elevation_stop2), numpy.max(self.mean_energy_elevation_stop2)/2, numpy.max(self.mean_energy_elevation_stop2)])
-        cbar.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_stop2/2)), '>'+ str(numpy.max(self.mean_energy_elevation_stop2))])  # vertically oriented colorbar
+        cax4 = ax4.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
+        ax4.set_title("Stop2/J at Energy vs Elevation")
+        cbar4 = fig.colorbar(cax4, ticks=[numpy.min(self.mean_energy_elevation_stop2), numpy.max(self.mean_energy_elevation_stop2)/2, numpy.max(self.mean_energy_elevation_stop2)])
+        cbar4.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_stop2/2)), '>'+ str(numpy.max(self.mean_energy_elevation_stop2))])  # vertically oriented colorbar
 
 
 
 
         plt.show()
-
+        fig.savefig("./argon.png")
     def ProcessEntry(self, file, J):
         s1 = struct.Struct('>' + '26s I I I I I I I I I I I I f f f f f f f f 4s H H I I H I HHHHH I HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH III')
         array1 = struct.Struct('>' + '8192H')
@@ -120,10 +119,12 @@ class TestRun:
             entry3 = third_entry._make(s3.unpack_from(b, 20842))
             entry = TestEntry(entry1, entry2, entry3, first_array, second_array)
             if entry.entry1.acr13_moving == 0:
-                self.energy_elevation_start1[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog)+180].append(entry.entry2.starttof1)
-                self.energy_elevation_start2[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog)+180].append(entry.entry2.starttof2)
-                self.energy_elevation_stop1[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog)+180].append(entry.entry2.stoptof1)
-                self.energy_elevation_stop2[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog)+180].append(entry.entry2.stoptof2)
+                if int(entry.entry1.acr13_bprog*180.0/3.14159)+180 > 360:
+                    print int(entry.entry1.acr13_bprog*180/3.14159)+180
+                self.energy_elevation_start1[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog*180.0/3.14159)+180-1].append(entry.entry2.starttof1)
+                self.energy_elevation_start2[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog*180.0/3.14159)+180-1].append(entry.entry2.starttof2)
+                self.energy_elevation_stop1[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog*180.0/3.14159)+180-1].append(entry.entry2.stoptof1)
+                self.energy_elevation_stop2[entry.entry1.ENERGY_LVL][int(entry.entry1.acr13_bprog*180.0/3.14159)+180-1].append(entry.entry2.stoptof2)
                 self.stable_count += 1
         print "Collapsing to means"
         energy_index = 0
@@ -132,7 +133,10 @@ class TestRun:
             elevation_index = -180
             for column in row:
                 for entry in column:
-                    self.mean_energy_elevation_start1[energy_index][elevation_index+180] = numpy.mean(entry)/J
+                    if numpy.mean(entry)/J > 0:
+                        self.mean_energy_elevation_start1[energy_index][elevation_index+180] = math.log(numpy.mean(entry)/J)
+                    else:
+                        self.mean_energy_elevation_start1[energy_index][elevation_index+180] = 0
                 elevation_index += 1
             energy_index +=1
         energy_index = 0
@@ -141,7 +145,11 @@ class TestRun:
             elevation_index = -180
             for column in row:
                 for entry in column:
-                    self.mean_energy_elevation_start2[energy_index][elevation_index+180] = numpy.mean(entry)/J
+                    #self.mean_energy_elevation_start2[energy_index][elevation_index+180] = numpy.mean(entry)/J
+                    if numpy.mean(entry)/J > 0:
+                        self.mean_energy_elevation_start2[energy_index][elevation_index+180] = math.log(numpy.mean(entry)/J)
+                    else:
+                        self.mean_energy_elevation_start2[energy_index][elevation_index+180] = 0
                 elevation_index += 1
             energy_index +=1
         energy_index = 0
@@ -150,7 +158,11 @@ class TestRun:
             elevation_index = -180
             for column in row:
                 for entry in column:
-                    self.mean_energy_elevation_stop1[energy_index][elevation_index+180] = numpy.mean(entry)/J
+                    if numpy.mean(entry)/J > 0:
+                        self.mean_energy_elevation_stop1[energy_index][elevation_index+180] = math.log(numpy.mean(entry)/J)
+                    else:
+                        self.mean_energy_elevation_stop1[energy_index][elevation_index+180] = 0
+#self.mean_energy_elevation_stop1[energy_index][elevation_index+180] = numpy.mean(entry)/J
                 elevation_index += 1
             energy_index +=1
         energy_index = 0
@@ -159,7 +171,11 @@ class TestRun:
             elevation_index = -180
             for column in row:
                 for entry in column:
-                    self.mean_energy_elevation_stop2[energy_index][elevation_index+180] = numpy.mean(entry)/J
+                    if numpy.mean(entry)/J > 0:
+                        self.mean_energy_elevation_stop2[energy_index][elevation_index+180] = math.log(numpy.mean(entry)/J)
+                    else:
+                        self.mean_energy_elevation_stop2[energy_index][elevation_index+180] = 0
+ #self.mean_energy_elevation_stop2[energy_index][elevation_index+180] = numpy.mean(entry)/J
                 elevation_index += 1
             energy_index +=1
         print "Run length: " + str(len(self.EntryList))
