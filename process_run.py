@@ -40,24 +40,30 @@ class TestRun:
         self.root = dir_name
 
     def GetBinFile(self, directory):
+        print self.root + directory
+
         return glob.glob(self.root + directory + '/*.bin')[0]
 
     def CalculateCurrentDensity(self, directory):
         current_values = []
-        filename = self.GetCurrentFile(directory)[0]
-        with open(filename, 'rb') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if row['acr13.moving'] != 'nan' and float(row['acr13.moving']) == 0:
-                    val =  float(row['pam11.imon'])
-                    if not math.isnan(val):
-                        current_values.append(float(val))
+        J = []
+        for filename in  self.GetCurrentFile(directory):
+            with open(filename, 'rb') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    if row['acr13.moving'] != 'nan' and float(row['acr13.moving']) == 0:
+                        val =  float(row['pam11.imon'])
+                        if not math.isnan(val):
+                            current_values.append(float(val))
 
-            J = numpy.mean(current_values)*1e-12/(1.602e-19*3.14159)
-            print J
-            return J
+            J.append( numpy.mean(current_values)/(1.602e-19/3.14159))
+        J = numpy.mean(J)
+        print "current val: "+ str(numpy.mean(current_values))
+        print "J: " + str(J)
+        return J
     def GetCurrentFile(self, directory):
         filename = glob.glob(self.root + directory + "/char_beam_current*.csv")
+        filename.append(glob.glob(self.root + directory + "/ver_beam_current*.csv")[0])
         print filename
         return filename
     def ProcessRun(self):
@@ -66,35 +72,41 @@ class TestRun:
             file = open(self.GetBinFile(directory), 'rb')
             J = self.CalculateCurrentDensity(directory)
             self.ProcessEntry(file, J)
-            self.GeneratePlots()
-    def GeneratePlots(self):
+            self.GeneratePlots(directory)
+    def GeneratePlots(self, directory):
         #fig, ax = plt.subplots()
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, sharex='col', sharey='row')
-        cax1 = ax1.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
-        ax1.set_title("Start1/J at Energy vs Elevation")
+        fig, ax = plt.subplots()
+        cax1 = ax.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
+        ax.set_title("Start1/J at Energy vs Elevation")
         cbar1 = fig.colorbar(cax1, ticks=[numpy.min(self.mean_energy_elevation_start1), numpy.max(self.mean_energy_elevation_start1)/2, numpy.max(self.mean_energy_elevation_start1)])
         cbar1.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_start1/2)), '>'+ str(numpy.max(self.mean_energy_elevation_start1))])  # vertically oriented colorbar
+        fig.savefig("./" + directory + "_starts1.png")
 
- #       fig = plt.figure()
-        cax2 = ax2.imshow(self.mean_energy_elevation_start2, interpolation='nearest', cmap=cm.coolwarm)
-        ax2.set_title("Start2/J at Energy vs Elevation")
+        fig, ax = plt.subplots()
+        cax2 = ax.imshow(self.mean_energy_elevation_start2, interpolation='nearest', cmap=cm.coolwarm)
+        ax.set_title("Start2/J at Energy vs Elevation")
         cbar2 = fig.colorbar(cax2, ticks=[numpy.min(self.mean_energy_elevation_start2), numpy.max(self.mean_energy_elevation_start2)/2, numpy.max(self.mean_energy_elevation_start2)])
         cbar2.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_start2/2)), '>'+ str(numpy.max(self.mean_energy_elevation_start2))])  # vertically oriented colorbar
+        fig.savefig("./" + directory + "starts2.png")
 
-        cax3 = ax3.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
-        ax3.set_title("Stop1/J at Energy vs Elevation")
+        fig, ax = plt.subplots()
+        cax3 = ax.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
+        ax.set_title("Stop1/J at Energy vs Elevation")
         cbar3 = fig.colorbar(cax3, ticks=[numpy.min(self.mean_energy_elevation_stop1), numpy.max(self.mean_energy_elevation_stop1)/2, numpy.max(self.mean_energy_elevation_stop1)])
         cbar3.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_stop1/2)), '>'+ str(numpy.max(self.mean_energy_elevation_stop1))])  # vertically oriented colorbar
+        fig.savefig("./" + directory + "stops1.png")
 
-        cax4 = ax4.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
-        ax4.set_title("Stop2/J at Energy vs Elevation")
+        fig, ax = plt.subplots()
+        cax4 = ax.imshow(self.mean_energy_elevation_start1, interpolation='nearest', cmap=cm.coolwarm)
+        ax.set_title("Stop2/J at Energy vs Elevation")
         cbar4 = fig.colorbar(cax4, ticks=[numpy.min(self.mean_energy_elevation_stop2), numpy.max(self.mean_energy_elevation_stop2)/2, numpy.max(self.mean_energy_elevation_stop2)])
         cbar4.ax.set_yticklabels(['< 0', str(numpy.max(self.mean_energy_elevation_stop2/2)), '>'+ str(numpy.max(self.mean_energy_elevation_stop2))])  # vertically oriented colorbar
+        fig.savefig("./" + directory + "stops2.png")
 
 
 
 
-        plt.show()
+#        plt.show()
         fig.savefig("./argon.png")
     def ProcessEntry(self, file, J):
         s1 = struct.Struct('>' + '26s I I I I I I I I I I I I f f f f f f f f 4s H H I I H I HHHHH I HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH III')
@@ -134,7 +146,7 @@ class TestRun:
             for column in row:
                 for entry in column:
                     if numpy.mean(entry)/J > 0:
-                        self.mean_energy_elevation_start1[energy_index][elevation_index+180] = math.log(numpy.mean(entry)/J)
+                        self.mean_energy_elevation_start1[energy_index][elevation_index+180] = numpy.mean(entry)/J
                     else:
                         self.mean_energy_elevation_start1[energy_index][elevation_index+180] = 0
                 elevation_index += 1
@@ -147,7 +159,7 @@ class TestRun:
                 for entry in column:
                     #self.mean_energy_elevation_start2[energy_index][elevation_index+180] = numpy.mean(entry)/J
                     if numpy.mean(entry)/J > 0:
-                        self.mean_energy_elevation_start2[energy_index][elevation_index+180] = math.log(numpy.mean(entry)/J)
+                        self.mean_energy_elevation_start2[energy_index][elevation_index+180] = numpy.mean(entry)/J
                     else:
                         self.mean_energy_elevation_start2[energy_index][elevation_index+180] = 0
                 elevation_index += 1
@@ -159,7 +171,7 @@ class TestRun:
             for column in row:
                 for entry in column:
                     if numpy.mean(entry)/J > 0:
-                        self.mean_energy_elevation_stop1[energy_index][elevation_index+180] = math.log(numpy.mean(entry)/J)
+                        self.mean_energy_elevation_stop1[energy_index][elevation_index+180] = numpy.mean(entry)/J
                     else:
                         self.mean_energy_elevation_stop1[energy_index][elevation_index+180] = 0
 #self.mean_energy_elevation_stop1[energy_index][elevation_index+180] = numpy.mean(entry)/J
@@ -172,7 +184,7 @@ class TestRun:
             for column in row:
                 for entry in column:
                     if numpy.mean(entry)/J > 0:
-                        self.mean_energy_elevation_stop2[energy_index][elevation_index+180] = math.log(numpy.mean(entry)/J)
+                        self.mean_energy_elevation_stop2[energy_index][elevation_index+180] = numpy.mean(entry)/J
                     else:
                         self.mean_energy_elevation_stop2[energy_index][elevation_index+180] = 0
  #self.mean_energy_elevation_stop2[energy_index][elevation_index+180] = numpy.mean(entry)/J
